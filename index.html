@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#145A32">
+<link rel="manifest" href="manifest.json">
+<title>SG · Control de Visitas y Proveedores</title>
+<style>
+  :root{ --dark:#145A32; --green:#1E7145; --light:#D5F5E3; --ing:#1E7145; --egr:#B03A2E; --bg:#f2f4f3; }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:#1b2b24}
+  header{background:var(--dark);color:#fff;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:5}
+  header .t{font-weight:700;font-size:16px;line-height:1.1}
+  header .s{font-size:12px;opacity:.85}
+  header button{background:rgba(255,255,255,.15);color:#fff;border:0;border-radius:8px;padding:8px 12px;font-size:13px;font-weight:600}
+  .wrap{max-width:560px;margin:0 auto;padding:16px}
+  .card{background:#fff;border-radius:16px;box-shadow:0 2px 10px rgba(0,0,0,.06);padding:20px;margin-bottom:14px}
+  h2{margin:0 0 14px;font-size:18px;color:var(--dark)}
+  label{display:block;font-weight:600;font-size:14px;margin:14px 0 6px}
+  input,textarea,select{width:100%;border:1.5px solid #cfd8d3;border-radius:10px;padding:13px;font-size:16px;background:#fff}
+  input:focus,textarea:focus{outline:none;border-color:var(--green)}
+  textarea{min-height:70px;resize:vertical}
+  .toggle{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .opt{border:2px solid #cfd8d3;border-radius:12px;padding:15px;text-align:center;font-weight:700;font-size:15px;background:#fff;cursor:pointer;user-select:none}
+  .opt.sel{color:#fff;border-color:transparent}
+  .opt.sel.ing{background:var(--ing)} .opt.sel.egr{background:var(--egr)}
+  .opt.sel.gen{background:var(--green)}
+  .btn{width:100%;border:0;border-radius:12px;padding:16px;font-size:17px;font-weight:800;color:#fff;background:var(--green);margin-top:20px}
+  .btn:disabled{opacity:.5}
+  .msg{padding:12px;border-radius:10px;margin-top:14px;font-weight:600;font-size:14px;display:none}
+  .msg.ok{background:var(--light);color:var(--dark);display:block}
+  .msg.err{background:#fdecea;color:#922;display:block}
+  .ctx{font-size:12px;color:#5b6b63;margin-top:4px}
+  .hidden{display:none}
+  .pin{letter-spacing:2px;text-align:center;font-size:22px;font-weight:700}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <div class="t">SG · Visitas y Proveedores</div>
+    <div class="s" id="ctxHeader">—</div>
+  </div>
+  <button id="btnSalir" class="hidden" onclick="salir()">Salir</button>
+</header>
+
+<div class="wrap">
+
+  <!-- PANTALLA 1: LOGIN CUIL -->
+  <div id="p1" class="card">
+    <h2>Identificación del vigilador</h2>
+    <label>CUIL (11 dígitos)</label>
+    <input id="cuil" class="pin" inputmode="numeric" maxlength="11" placeholder="20304050607">
+    <button class="btn" onclick="ingresar()">Ingresar</button>
+    <div id="msg1" class="msg"></div>
+  </div>
+
+  <!-- PANTALLA 2: FORMULARIO -->
+  <div id="p2" class="card hidden">
+    <h2>Nuevo registro</h2>
+
+    <label>Movimiento</label>
+    <div class="toggle">
+      <div class="opt ing" data-g="tipo" data-v="INGRESO" onclick="pick(this)">INGRESO</div>
+      <div class="opt egr" data-g="tipo" data-v="EGRESO" onclick="pick(this)">EGRESO</div>
+    </div>
+
+    <label>Tipo de persona</label>
+    <div class="toggle">
+      <div class="opt gen" data-g="categoria" data-v="PROVEEDOR" onclick="pick(this)">PROVEEDOR</div>
+      <div class="opt gen" data-g="categoria" data-v="VISITA" onclick="pick(this)">VISITA</div>
+    </div>
+
+    <label>Nombre y apellido</label>
+    <input id="nombre" autocomplete="off" placeholder="Ej: Juan Pérez">
+
+    <label>¿Ingresa con vehículo?</label>
+    <div class="toggle">
+      <div class="opt gen" data-g="vehiculo" data-v="SI" onclick="pick(this)">SÍ</div>
+      <div class="opt gen" data-g="vehiculo" data-v="NO" onclick="pick(this)">NO</div>
+    </div>
+
+    <div id="boxPatente" class="hidden">
+      <label>Patente</label>
+      <input id="patente" autocomplete="off" style="text-transform:uppercase" placeholder="AB123CD">
+    </div>
+
+    <label>Observaciones</label>
+    <textarea id="obs" placeholder="Opcional"></textarea>
+
+    <button id="btnEnviar" class="btn" onclick="enviar()">Enviar</button>
+    <div id="msg2" class="msg"></div>
+  </div>
+
+</div>
+
+<script>
+/*==================== CONFIG ====================*/
+var GAS_URL   = 'https://script.google.com/macros/s/AKfycbym_DLVDCc3QRTNH4ux14KnARkMB9pHwDjI788BhoYQvrlhZwE8fy7WISmqRB9sDr0q/exec';   // termina en /exec
+var EL4ZJFkzTR1gVPf3eOEEHdSyuqEAHvDTJwprVlkSMziuMMo1TFu2ToDpxucPVj3t';        // mismo valor que en Codigo.gs
+var SESION_MS = 10 * 60 * 1000;             // 10 minutos
+
+/*==================== ESTADO ====================*/
+var params = new URLSearchParams(location.search);
+var OBJETIVO = params.get('objetivo') || '';
+var PUESTO   = params.get('puesto') || '';
+var CUIL = '';
+var sel = { tipo:'', categoria:'', vehiculo:'' };
+var regId = '';
+var geo = { lat:'', lon:'' };
+var sesionTimer = null;
+
+document.getElementById('ctxHeader').textContent =
+  (OBJETIVO ? OBJETIVO : 'Sin objetivo') + ' · ' + (PUESTO ? PUESTO : 'Sin puesto');
+
+/*==================== LOGIN ====================*/
+function ingresar(){
+  var v = document.getElementById('cuil').value.replace(/\D/g,'');
+  if(v.length !== 11){ return showMsg('msg1','Ingresá un CUIL válido de 11 dígitos','err'); }
+  CUIL = v;
+  document.getElementById('p1').classList.add('hidden');
+  document.getElementById('p2').classList.remove('hidden');
+  document.getElementById('btnSalir').classList.remove('hidden');
+  nuevoRegId();
+  pedirGeo();
+  reiniciarSesion();
+}
+
+function salir(){
+  clearTimeout(sesionTimer);
+  CUIL=''; sel={tipo:'',categoria:'',vehiculo:''};
+  document.getElementById('cuil').value='';
+  resetForm();
+  document.getElementById('p2').classList.add('hidden');
+  document.getElementById('btnSalir').classList.add('hidden');
+  document.getElementById('p1').classList.remove('hidden');
+  document.getElementById('msg1').className='msg';
+}
+
+function reiniciarSesion(){
+  clearTimeout(sesionTimer);
+  sesionTimer = setTimeout(function(){ alert('Sesión expirada. Ingresá el CUIL de nuevo.'); salir(); }, SESION_MS);
+}
+
+/*==================== FORM ====================*/
+function pick(el){
+  var g = el.dataset.g, v = el.dataset.v;
+  document.querySelectorAll('.opt[data-g="'+g+'"]').forEach(function(o){ o.classList.remove('sel'); });
+  el.classList.add('sel');
+  sel[g] = v;
+  if(g==='vehiculo'){
+    document.getElementById('boxPatente').classList.toggle('hidden', v!=='SI');
+    if(v!=='SI') document.getElementById('patente').value='';
+  }
+  reiniciarSesion();
+}
+
+function nuevoRegId(){
+  regId = (Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,10));
+}
+
+function pedirGeo(){
+  if(!navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(function(pos){
+    geo.lat = pos.coords.latitude; geo.lon = pos.coords.longitude;
+  }, function(){}, {enableHighAccuracy:false, timeout:8000, maximumAge:60000});
+}
+
+function resetForm(){
+  document.getElementById('nombre').value='';
+  document.getElementById('patente').value='';
+  document.getElementById('obs').value='';
+  document.getElementById('boxPatente').classList.add('hidden');
+  document.querySelectorAll('.opt.sel').forEach(function(o){ o.classList.remove('sel'); });
+  sel={tipo:'',categoria:'',vehiculo:''};
+}
+
+/*==================== ENVIAR ====================*/
+async function enviar(){
+  if(!sel.tipo) return showMsg('msg2','Elegí INGRESO o EGRESO','err');
+  if(!sel.categoria) return showMsg('msg2','Elegí PROVEEDOR o VISITA','err');
+  var nombre = document.getElementById('nombre').value.trim();
+  if(!nombre) return showMsg('msg2','Falta el nombre','err');
+  if(!sel.vehiculo) return showMsg('msg2','Indicá si ingresa con vehículo','err');
+  var patente = document.getElementById('patente').value.trim().toUpperCase();
+  if(sel.vehiculo==='SI' && !patente) return showMsg('msg2','Falta la patente','err');
+
+  var payload = {
+    action:'registrar', token:TOKEN_APP, regId:regId,
+    cuil:CUIL, objetivo:OBJETIVO, puesto:PUESTO,
+    tipo:sel.tipo, categoria:sel.categoria, nombre:nombre,
+    vehiculo:sel.vehiculo, patente:patente,
+    observaciones:document.getElementById('obs').value.trim(),
+    lat:geo.lat, lon:geo.lon
+  };
+
+  var btn = document.getElementById('btnEnviar');
+  btn.disabled = true; btn.textContent = 'Enviando...';
+  try{
+    var res = await fetch(GAS_URL, { method:'POST', body: JSON.stringify(payload), redirect:'follow' });
+    var data = await res.json();
+    if(data.ok){
+      showMsg('msg2','✓ Registrado ('+ (data.hora||'') +')','ok');
+      resetForm(); nuevoRegId(); pedirGeo(); reiniciarSesion();
+    } else {
+      showMsg('msg2','Error: '+(data.error||'desconocido'),'err');
+    }
+  }catch(err){
+    showMsg('msg2','Sin conexión. Reintentá (no se pierde el dato).','err');
+  }finally{
+    btn.disabled = false; btn.textContent = 'Enviar';
+  }
+}
+
+function showMsg(id, txt, cls){
+  var m = document.getElementById(id);
+  m.textContent = txt; m.className = 'msg '+cls;
+  if(cls==='ok') setTimeout(function(){ m.className='msg'; }, 3500);
+}
+
+/* Service worker (PWA) */
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(function(){});
+}
+</script>
+</body>
+</html>
