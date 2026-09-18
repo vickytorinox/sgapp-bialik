@@ -2,227 +2,416 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<meta name="theme-color" content="#145A32">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0a0a">
+<title>SG · Visitas y Proveedores</title>
 <link rel="manifest" href="manifest.json">
-<title>SG · Control de Visitas y Proveedores</title>
 <style>
-  :root{ --dark:#145A32; --green:#1E7145; --light:#D5F5E3; --ing:#1E7145; --egr:#B03A2E; --bg:#f2f4f3; }
-  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  body{margin:0;font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:#1b2b24}
-  header{background:var(--dark);color:#fff;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:5}
-  header .t{font-weight:700;font-size:16px;line-height:1.1}
-  header .s{font-size:12px;opacity:.85}
-  header button{background:rgba(255,255,255,.15);color:#fff;border:0;border-radius:8px;padding:8px 12px;font-size:13px;font-weight:600}
-  .wrap{max-width:560px;margin:0 auto;padding:16px}
-  .card{background:#fff;border-radius:16px;box-shadow:0 2px 10px rgba(0,0,0,.06);padding:20px;margin-bottom:14px}
-  h2{margin:0 0 14px;font-size:18px;color:var(--dark)}
-  label{display:block;font-weight:600;font-size:14px;margin:14px 0 6px}
-  input,textarea,select{width:100%;border:1.5px solid #cfd8d3;border-radius:10px;padding:13px;font-size:16px;background:#fff}
-  input:focus,textarea:focus{outline:none;border-color:var(--green)}
-  textarea{min-height:70px;resize:vertical}
-  .toggle{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .opt{border:2px solid #cfd8d3;border-radius:12px;padding:15px;text-align:center;font-weight:700;font-size:15px;background:#fff;cursor:pointer;user-select:none}
-  .opt.sel{color:#fff;border-color:transparent}
-  .opt.sel.ing{background:var(--ing)} .opt.sel.egr{background:var(--egr)}
-  .opt.sel.gen{background:var(--green)}
-  .btn{width:100%;border:0;border-radius:12px;padding:16px;font-size:17px;font-weight:800;color:#fff;background:var(--green);margin-top:20px}
-  .btn:disabled{opacity:.5}
-  .msg{padding:12px;border-radius:10px;margin-top:14px;font-weight:600;font-size:14px;display:none}
-  .msg.ok{background:var(--light);color:var(--dark);display:block}
-  .msg.err{background:#fdecea;color:#922;display:block}
-  .ctx{font-size:12px;color:#5b6b63;margin-top:4px}
-  .hidden{display:none}
-  .pin{letter-spacing:2px;text-align:center;font-size:22px;font-weight:700}
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --black: #0a0a0a;
+    --surface: #141414;
+    --surface2: #1e1e1e;
+    --border: #2a2a2a;
+    --text: #f0f0f0;
+    --muted: #666;
+
+    --accent: #1db954;
+    --accent-dark: #158a3e;
+    --accent-soft: rgba(29, 185, 84, 0.14);
+
+    --ok: #1db954;
+    --no: #e63030;
+
+    --s2-bg: #f0faf4;
+    --s2-surface: #ffffff;
+    --s2-border: #b8e0c8;
+    --s2-text: #0f1f16;
+    --s2-muted: #4a7a5c;
+    --s2-header-bg: #1a1a1a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--black); color: var(--text);
+    font-family: 'DM Sans', sans-serif; min-height: 100dvh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    overflow-x: hidden;
+  }
+
+  .header {
+    position: fixed; top: 0; left: 0; right: 0;
+    background: var(--black); border-bottom: 1px solid var(--border);
+    padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; z-index: 100;
+  }
+  .logo { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 3px; color: var(--accent); user-select: none; }
+  .session-timer { font-size: 12px; color: var(--muted); font-weight: 500; letter-spacing: 1px; display: none; }
+  .session-timer.warning  { color: #f59e0b; }
+  .session-timer.critical { color: var(--no); animation: pulse 1s infinite; }
+
+  .screen { width: 100%; max-width: 480px; padding: 80px 24px 40px; display: none; flex-direction: column; gap: 20px; min-height: 100dvh; }
+  .screen.active { display: flex; }
+
+  .brand-block { text-align: center; padding: 20px 0 10px; }
+  .brand-block .title { font-family: 'Bebas Neue', sans-serif; font-size: 52px; letter-spacing: 6px; color: var(--text); line-height: 1; }
+  .brand-block .subtitle { font-size: 11px; letter-spacing: 4px; color: var(--accent); text-transform: uppercase; margin-top: 6px; }
+
+  .divider { height: 1px; background: var(--border); margin: 4px 0; }
+
+  .field-group { display: flex; flex-direction: column; gap: 8px; }
+  .field-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+
+  input[type="text"], input[type="number"], input[type="password"], textarea {
+    width: 100%; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px 16px; color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: 16px; outline: none;
+    transition: border-color 0.2s; appearance: none; -webkit-appearance: none;
+  }
+  input:focus, textarea:focus { border-color: var(--accent); }
+  input[type="number"] { -moz-appearance: textfield; }
+
+  .cuil-field { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 5px; text-align: center; }
+  .cuil-field::placeholder { font-family: 'DM Sans', sans-serif; font-size: 14px; letter-spacing: 1px; opacity: 0.35; }
+
+  .btn { width: 100%; padding: 16px; border: none; border-radius: 8px; font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 3px; cursor: pointer; transition: all 0.15s; }
+  .btn:active { transform: scale(0.98); }
+  .btn:disabled { opacity: 0.5; }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:hover { background: var(--accent-dark); }
+  .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; letter-spacing: 1px; }
+
+  /* SCREEN 2 (claro, uso diurno en puesto) */
+  #screen2 { background: var(--s2-bg); color: var(--s2-text); }
+  #screen2 .field-label { color: var(--s2-muted); }
+  #screen2 input, #screen2 textarea { background: var(--s2-surface); border-color: var(--s2-border); color: var(--s2-text); }
+  #screen2 input:focus, #screen2 textarea:focus { border-color: var(--accent); }
+  #screen2 .info-bar { background: var(--s2-header-bg); border-color: #333; }
+  #screen2 .btn-secondary { background: #e0e0e0; color: #333; border-color: #ccc; }
+  #screen2 .opt { border-color: var(--s2-border); background: var(--s2-surface); color: var(--s2-text); }
+
+  .selector { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .opt {
+    padding: 20px 10px; border: 2px solid var(--border); border-radius: 10px;
+    background: var(--surface); color: var(--text);
+    font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 2px;
+    cursor: pointer; transition: all 0.15s; -webkit-appearance: none;
+  }
+  .opt:active { transform: scale(0.97); }
+  .opt.sel-ing, #screen2 .opt.sel-ing { background: #d4f5e2; border-color: var(--ok); color: #0f5c2a; }
+  .opt.sel-egr, #screen2 .opt.sel-egr { background: #fde8e8; border-color: var(--no); color: #7f1d1d; }
+  .opt.sel-gen, #screen2 .opt.sel-gen { background: #d4f5e2; border-color: var(--accent); color: #0f5c2a; }
+
+  textarea { resize: none; height: 80px; line-height: 1.5; }
+
+  .info-bar { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; }
+  .info-bar-label { font-size: 10px; letter-spacing: 2px; color: #888; text-transform: uppercase; }
+  .info-bar-value { font-size: 13px; font-weight: 600; color: #f0f0f0; }
+
+  .hidden { display: none; }
+
+  .toast {
+    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(140px);
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 24px; font-size: 14px; font-weight: 500; z-index: 999;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); max-width: 90vw; text-align: center;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.success { border-color: var(--ok); color: var(--ok); }
+  .toast.error { border-color: var(--no); color: var(--no); }
+
+  .loading-overlay { position: fixed; inset: 0; background: rgba(10,10,10,0.85); display: none; flex-direction: column; align-items: center; justify-content: center; gap: 16px; z-index: 200; backdrop-filter: blur(4px); }
+  .loading-overlay.show { display: flex; }
+  .loading-spinner { width: 44px; height: 44px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  .loading-text { font-size: 13px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+
+  @keyframes spin  { to { transform: rotate(360deg); } }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
 </style>
 </head>
 <body>
-<header>
-  <div>
-    <div class="t">SG · Visitas y Proveedores</div>
-    <div class="s" id="ctxHeader">—</div>
-  </div>
-  <button id="btnSalir" class="hidden" onclick="salir()">Salir</button>
-</header>
 
-<div class="wrap">
-
-  <!-- PANTALLA 1: LOGIN CUIL -->
-  <div id="p1" class="card">
-    <h2>Identificación del vigilador</h2>
-    <label>CUIL (11 dígitos)</label>
-    <input id="cuil" class="pin" inputmode="numeric" maxlength="11" placeholder="20304050607">
-    <button class="btn" onclick="ingresar()">Ingresar</button>
-    <div id="msg1" class="msg"></div>
-  </div>
-
-  <!-- PANTALLA 2: FORMULARIO -->
-  <div id="p2" class="card hidden">
-    <h2>Nuevo registro</h2>
-
-    <label>Movimiento</label>
-    <div class="toggle">
-      <div class="opt ing" data-g="tipo" data-v="INGRESO" onclick="pick(this)">INGRESO</div>
-      <div class="opt egr" data-g="tipo" data-v="EGRESO" onclick="pick(this)">EGRESO</div>
-    </div>
-
-    <label>Tipo de persona</label>
-    <div class="toggle">
-      <div class="opt gen" data-g="categoria" data-v="PROVEEDOR" onclick="pick(this)">PROVEEDOR</div>
-      <div class="opt gen" data-g="categoria" data-v="VISITA" onclick="pick(this)">VISITA</div>
-    </div>
-
-    <label>Nombre y apellido</label>
-    <input id="nombre" autocomplete="off" placeholder="Ej: Juan Pérez">
-
-    <label>¿Ingresa con vehículo?</label>
-    <div class="toggle">
-      <div class="opt gen" data-g="vehiculo" data-v="SI" onclick="pick(this)">SÍ</div>
-      <div class="opt gen" data-g="vehiculo" data-v="NO" onclick="pick(this)">NO</div>
-    </div>
-
-    <div id="boxPatente" class="hidden">
-      <label>Patente</label>
-      <input id="patente" autocomplete="off" style="text-transform:uppercase" placeholder="AB123CD">
-    </div>
-
-    <label>Observaciones</label>
-    <textarea id="obs" placeholder="Opcional"></textarea>
-
-    <button id="btnEnviar" class="btn" onclick="enviar()">Enviar</button>
-    <div id="msg2" class="msg"></div>
-  </div>
-
+<div class="header">
+  <div class="logo">SG</div>
+  <div class="session-timer" id="sessionTimer">SESIÓN: 10:00</div>
 </div>
 
+<!-- ══ SCREEN 1 — LOGIN ══ -->
+<div class="screen active" id="screen1">
+  <div class="brand-block">
+    <div class="title">VISITAS</div>
+    <div class="subtitle">Proveedores y visitas · ingreso / egreso</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="field-group">
+    <div class="field-label">CUIL del registrador</div>
+    <input type="number" class="cuil-field" id="cuilInput" placeholder="20304050607" inputmode="numeric">
+  </div>
+
+  <div style="background:#1a1a1a; border-radius:8px; padding:12px 16px; border:1px solid #2a2a2a;">
+    <div style="font-size:10px; letter-spacing:2px; color:#666; text-transform:uppercase; margin-bottom:4px;">Objetivo / Puesto</div>
+    <div id="puestoInfoLabel" style="font-size:15px; font-weight:600; color:#f0f0f0;">—</div>
+  </div>
+
+  <button class="btn btn-primary" onclick="iniciarSesion()">INGRESAR</button>
+
+  <div class="divider"></div>
+  <div id="outboxIndicator" style="display:none; background:#3a2e0d; border:1px solid #6b5410; color:#f0c000; font-size:12px; font-weight:600; padding:9px 12px; border-radius:8px; text-align:center;"></div>
+</div>
+
+<!-- ══ SCREEN 2 — REGISTRO ══ -->
+<div class="screen" id="screen2">
+
+  <div class="info-bar">
+    <div>
+      <div class="info-bar-label">Registrador</div>
+      <div class="info-bar-value" id="cuilDisplay">—</div>
+      <div class="info-bar-label" style="margin-top:4px">Objetivo / Puesto</div>
+      <div class="info-bar-value" id="puestoDisplay">—</div>
+    </div>
+    <div style="text-align:right">
+      <div class="info-bar-label">Fecha / Hora</div>
+      <div class="info-bar-value" id="fechaDisplay">—</div>
+    </div>
+  </div>
+
+  <div class="field-group">
+    <div class="field-label">Movimiento</div>
+    <div class="selector">
+      <button type="button" class="opt" id="btnIngreso" onclick="pick('tipo','INGRESO',this)">🟢 INGRESO</button>
+      <button type="button" class="opt" id="btnEgreso"  onclick="pick('tipo','EGRESO',this)">🔴 EGRESO</button>
+    </div>
+  </div>
+
+  <div class="field-group">
+    <div class="field-label">Tipo de persona</div>
+    <div class="selector">
+      <button type="button" class="opt" onclick="pick('categoria','PROVEEDOR',this)">PROVEEDOR</button>
+      <button type="button" class="opt" onclick="pick('categoria','VISITA',this)">VISITA</button>
+    </div>
+  </div>
+
+  <div class="field-group">
+    <div class="field-label">Nombre y apellido</div>
+    <input type="text" id="nombreInput" placeholder="Ej: Juan Pérez" autocomplete="off">
+  </div>
+
+  <div class="field-group">
+    <div class="field-label">¿Ingresa con vehículo?</div>
+    <div class="selector">
+      <button type="button" class="opt" onclick="pick('vehiculo','SI',this)">SÍ</button>
+      <button type="button" class="opt" onclick="pick('vehiculo','NO',this)">NO</button>
+    </div>
+  </div>
+
+  <div class="field-group hidden" id="patenteGroup">
+    <div class="field-label">Patente</div>
+    <input type="text" id="patenteInput" placeholder="AB123CD" autocomplete="off" style="text-transform:uppercase; font-family:'Bebas Neue',sans-serif; font-size:24px; letter-spacing:4px; text-align:center;">
+  </div>
+
+  <div class="field-group">
+    <div class="field-label">Observaciones</div>
+    <textarea id="obsInput" placeholder="Opcional"></textarea>
+  </div>
+
+  <div id="outboxIndicator2" style="display:none; background:#fff8e1; border:1px solid #f59e0b; color:#78350f; font-size:12px; font-weight:600; padding:9px 12px; border-radius:8px; text-align:center; margin-bottom:4px;"></div>
+
+  <button class="btn btn-primary" onclick="enviarRegistro()">ENVIAR REGISTRO</button>
+  <button class="btn btn-secondary" onclick="cerrarSesion()">Cerrar sesión</button>
+</div>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-spinner"></div>
+  <div class="loading-text" id="loadingText">Procesando...</div>
+</div>
+<div class="toast" id="toast"></div>
+
 <script>
-/*==================== CONFIG ====================*/
-var GAS_URL   = 'https://script.google.com/macros/s/AKfycbym_DLVDCc3QRTNH4ux14KnARkMB9pHwDjI788BhoYQvrlhZwE8fy7WISmqRB9sDr0q/exec';   // termina en /exec
-var EL4ZJFkzTR1gVPf3eOEEHdSyuqEAHvDTJwprVlkSMziuMMo1TFu2ToDpxucPVj3t';        // mismo valor que en Codigo.gs
-var SESION_MS = 10 * 60 * 1000;             // 10 minutos
+// ══════════════════════════════════════════════════════════════════
+// SG · VISITAS Y PROVEEDORES — v1.0.0
+// ══════════════════════════════════════════════════════════════════
+const CONFIG = {
+  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbym_DLVDCc3QRTNH4ux14KnARkMB9pHwDjI788BhoYQvrlhZwE8fy7WISmqRB9sDr0q/exec',
+  SECRET_TOKEN:    'EL4ZJFkzTR1gVPf3eOEEHdSyuqEAHvDTJwprVlkSMziuMMo1TFu2ToDpxucPVj3t',
+  SESSION_MINUTES: 10,
+};
 
-/*==================== ESTADO ====================*/
-var params = new URLSearchParams(location.search);
-var OBJETIVO = params.get('objetivo') || '';
-var PUESTO   = params.get('puesto') || '';
-var CUIL = '';
-var sel = { tipo:'', categoria:'', vehiculo:'' };
-var regId = '';
-var geo = { lat:'', lon:'' };
-var sesionTimer = null;
+const KEY_OUTBOX = 'sgvis_outbox';
 
-document.getElementById('ctxHeader').textContent =
-  (OBJETIVO ? OBJETIVO : 'Sin objetivo') + ' · ' + (PUESTO ? PUESTO : 'Sin puesto');
+let state = { cuil:null, objetivo:null, puesto:null, tipo:null, categoria:null, vehiculo:null,
+              sessionTimer:null, sessionSeconds: CONFIG.SESSION_MINUTES*60 };
 
-/*==================== LOGIN ====================*/
-function ingresar(){
-  var v = document.getElementById('cuil').value.replace(/\D/g,'');
-  if(v.length !== 11){ return showMsg('msg1','Ingresá un CUIL válido de 11 dígitos','err'); }
-  CUIL = v;
-  document.getElementById('p1').classList.add('hidden');
-  document.getElementById('p2').classList.remove('hidden');
-  document.getElementById('btnSalir').classList.remove('hidden');
-  nuevoRegId();
-  pedirGeo();
-  reiniciarSesion();
+// ─── INIT ─────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(location.search);
+  state.objetivo = (params.get('objetivo')||'').toUpperCase();
+  state.puesto   = (params.get('puesto')||'').toUpperCase();
+  document.getElementById('puestoInfoLabel').textContent =
+    (state.objetivo||'Sin objetivo') + ' — Puesto ' + (state.puesto||'—');
+  actualizarIndicadorOutbox();
+  flushOutbox();
+});
+
+// ─── SESIÓN ───────────────────────────────────────────────────────
+function iniciarSesion() {
+  const v = document.getElementById('cuilInput').value.replace(/\D/g,'');
+  if (v.length !== 11) { return showToast('Ingresá un CUIL válido de 11 dígitos', 'error'); }
+  state.cuil = v;
+  document.getElementById('cuilDisplay').textContent = v;
+  document.getElementById('puestoDisplay').textContent =
+    (state.objetivo||'—') + ' / ' + (state.puesto||'—');
+  actualizarFecha();
+  showScreen('screen2');
+  resetTimer();
 }
 
-function salir(){
-  clearTimeout(sesionTimer);
-  CUIL=''; sel={tipo:'',categoria:'',vehiculo:''};
-  document.getElementById('cuil').value='';
-  resetForm();
-  document.getElementById('p2').classList.add('hidden');
-  document.getElementById('btnSalir').classList.add('hidden');
-  document.getElementById('p1').classList.remove('hidden');
-  document.getElementById('msg1').className='msg';
+function cerrarSesion() {
+  clearInterval(state.sessionTimer);
+  document.getElementById('sessionTimer').style.display = 'none';
+  state.cuil = null; limpiarFormulario();
+  document.getElementById('cuilInput').value = '';
+  showScreen('screen1');
 }
 
-function reiniciarSesion(){
-  clearTimeout(sesionTimer);
-  sesionTimer = setTimeout(function(){ alert('Sesión expirada. Ingresá el CUIL de nuevo.'); salir(); }, SESION_MS);
+function resetTimer() {
+  clearInterval(state.sessionTimer);
+  state.sessionSeconds = CONFIG.SESSION_MINUTES*60;
+  const el = document.getElementById('sessionTimer');
+  el.style.display = 'block';
+  pintarTimer();
+  state.sessionTimer = setInterval(() => {
+    state.sessionSeconds--;
+    pintarTimer();
+    if (state.sessionSeconds <= 0) { showToast('Sesión expirada', 'error'); cerrarSesion(); }
+  }, 1000);
+}
+function pintarTimer() {
+  const m = Math.floor(state.sessionSeconds/60), s = state.sessionSeconds%60;
+  const el = document.getElementById('sessionTimer');
+  el.textContent = 'SESIÓN: ' + m + ':' + String(s).padStart(2,'0');
+  el.className = 'session-timer' + (state.sessionSeconds<=30 ? ' critical' : state.sessionSeconds<=120 ? ' warning' : '');
 }
 
-/*==================== FORM ====================*/
-function pick(el){
-  var g = el.dataset.g, v = el.dataset.v;
-  document.querySelectorAll('.opt[data-g="'+g+'"]').forEach(function(o){ o.classList.remove('sel'); });
-  el.classList.add('sel');
-  sel[g] = v;
-  if(g==='vehiculo'){
-    document.getElementById('boxPatente').classList.toggle('hidden', v!=='SI');
-    if(v!=='SI') document.getElementById('patente').value='';
+// ─── FORM ─────────────────────────────────────────────────────────
+function pick(grupo, valor, el) {
+  state[grupo] = valor;
+  const cont = el.parentElement;
+  cont.querySelectorAll('.opt').forEach(o => o.className = 'opt');
+  if (grupo === 'tipo') el.className = 'opt ' + (valor==='INGRESO' ? 'sel-ing' : 'sel-egr');
+  else el.className = 'opt sel-gen';
+  if (grupo === 'vehiculo') {
+    document.getElementById('patenteGroup').classList.toggle('hidden', valor!=='SI');
+    if (valor!=='SI') document.getElementById('patenteInput').value = '';
   }
-  reiniciarSesion();
+  resetTimer();
 }
 
-function nuevoRegId(){
-  regId = (Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,10));
+function limpiarFormulario() {
+  document.getElementById('nombreInput').value = '';
+  document.getElementById('patenteInput').value = '';
+  document.getElementById('obsInput').value = '';
+  document.getElementById('patenteGroup').classList.add('hidden');
+  document.querySelectorAll('#screen2 .opt').forEach(o => o.className = 'opt');
+  state.tipo = null; state.categoria = null; state.vehiculo = null;
 }
 
-function pedirGeo(){
-  if(!navigator.geolocation) return;
-  navigator.geolocation.getCurrentPosition(function(pos){
-    geo.lat = pos.coords.latitude; geo.lon = pos.coords.longitude;
-  }, function(){}, {enableHighAccuracy:false, timeout:8000, maximumAge:60000});
-}
+// ─── ENVIAR ───────────────────────────────────────────────────────
+async function enviarRegistro() {
+  if (!state.tipo)      return showToast('Elegí INGRESO o EGRESO', 'error');
+  if (!state.categoria) return showToast('Elegí PROVEEDOR o VISITA', 'error');
+  const nombre = document.getElementById('nombreInput').value.trim();
+  if (!nombre)          return showToast('Ingresá el nombre', 'error');
+  if (!state.vehiculo)  return showToast('Indicá si ingresa con vehículo', 'error');
+  const patente = document.getElementById('patenteInput').value.trim().toUpperCase();
+  if (state.vehiculo === 'SI' && !patente) return showToast('Falta la patente', 'error');
 
-function resetForm(){
-  document.getElementById('nombre').value='';
-  document.getElementById('patente').value='';
-  document.getElementById('obs').value='';
-  document.getElementById('boxPatente').classList.add('hidden');
-  document.querySelectorAll('.opt.sel').forEach(function(o){ o.classList.remove('sel'); });
-  sel={tipo:'',categoria:'',vehiculo:''};
-}
+  showLoading('Preparando registro...');
+  let lat = '', lon = '';
+  try { const pos = await getLocation(); lat = pos.coords.latitude.toFixed(6); lon = pos.coords.longitude.toFixed(6); } catch(e){}
+  hideLoading();
 
-/*==================== ENVIAR ====================*/
-async function enviar(){
-  if(!sel.tipo) return showMsg('msg2','Elegí INGRESO o EGRESO','err');
-  if(!sel.categoria) return showMsg('msg2','Elegí PROVEEDOR o VISITA','err');
-  var nombre = document.getElementById('nombre').value.trim();
-  if(!nombre) return showMsg('msg2','Falta el nombre','err');
-  if(!sel.vehiculo) return showMsg('msg2','Indicá si ingresa con vehículo','err');
-  var patente = document.getElementById('patente').value.trim().toUpperCase();
-  if(sel.vehiculo==='SI' && !patente) return showMsg('msg2','Falta la patente','err');
-
-  var payload = {
-    action:'registrar', token:TOKEN_APP, regId:regId,
-    cuil:CUIL, objetivo:OBJETIVO, puesto:PUESTO,
-    tipo:sel.tipo, categoria:sel.categoria, nombre:nombre,
-    vehiculo:sel.vehiculo, patente:patente,
-    observaciones:document.getElementById('obs').value.trim(),
-    lat:geo.lat, lon:geo.lon
+  const payload = {
+    action:'registrar', token: CONFIG.SECRET_TOKEN,
+    cuil: state.cuil, objetivo: state.objetivo, puesto: state.puesto,
+    tipo: state.tipo, categoria: state.categoria, nombre,
+    vehiculo: state.vehiculo, patente, observaciones: document.getElementById('obsInput').value.trim(),
+    lat, lon
   };
 
-  var btn = document.getElementById('btnEnviar');
-  btn.disabled = true; btn.textContent = 'Enviando...';
-  try{
-    var res = await fetch(GAS_URL, { method:'POST', body: JSON.stringify(payload), redirect:'follow' });
-    var data = await res.json();
-    if(data.ok){
-      showMsg('msg2','✓ Registrado ('+ (data.hora||'') +')','ok');
-      resetForm(); nuevoRegId(); pedirGeo(); reiniciarSesion();
-    } else {
-      showMsg('msg2','Error: '+(data.error||'desconocido'),'err');
-    }
-  }catch(err){
-    showMsg('msg2','Sin conexión. Reintentá (no se pierde el dato).','err');
-  }finally{
-    btn.disabled = false; btn.textContent = 'Enviar';
+  if (!agregarAOutbox(payload)) {
+    return showToast('⚠️ Memoria del dispositivo llena. Conectate para enviar los pendientes.', 'error');
   }
+  showToast('✅ Registro guardado', 'success');
+  limpiarFormulario();
+  resetTimer();
+  flushOutbox();
 }
 
-function showMsg(id, txt, cls){
-  var m = document.getElementById(id);
-  m.textContent = txt; m.className = 'msg '+cls;
-  if(cls==='ok') setTimeout(function(){ m.className='msg'; }, 3500);
+// ─── BANDEJA DE SALIDA (offline) ──────────────────────────────────
+let _flushing = false;
+function cargarOutbox(){ try { return JSON.parse(localStorage.getItem(KEY_OUTBOX)||'[]'); } catch { return []; } }
+function guardarOutboxArr(arr){ try { localStorage.setItem(KEY_OUTBOX, JSON.stringify(arr)); return true; } catch(e){ return false; } }
+function agregarAOutbox(payload){
+  const id = Date.now() + '-' + Math.random().toString(36).slice(2,8);
+  payload.regId = id;
+  const arr = cargarOutbox(); arr.push({ id, payload });
+  const ok = guardarOutboxArr(arr); actualizarIndicadorOutbox(); return ok;
+}
+function quitarDeOutbox(id){ guardarOutboxArr(cargarOutbox().filter(it => it.id !== id)); actualizarIndicadorOutbox(); }
+
+async function flushOutbox(){
+  if (_flushing) return;
+  const arr = cargarOutbox();
+  if (arr.length === 0) { actualizarIndicadorOutbox(); return; }
+  _flushing = true;
+  try {
+    for (const item of arr) {
+      let enviado = false;
+      for (let intento = 0; intento < 2 && !enviado; intento++) {
+        try {
+          const resp = await fetch(CONFIG.APPS_SCRIPT_URL, { method:'POST', body: JSON.stringify(item.payload), redirect:'follow' });
+          const result = await resp.json();
+          if (result && result.ok) enviado = true;   // backend responde { ok:true }
+        } catch(e) {}
+        if (!enviado && intento === 0) await new Promise(r => setTimeout(r, 1500));
+      }
+      if (enviado) quitarDeOutbox(item.id); else break;
+    }
+  } finally { _flushing = false; actualizarIndicadorOutbox(); }
 }
 
-/* Service worker (PWA) */
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('sw.js').catch(function(){});
+function actualizarIndicadorOutbox(){
+  const n = cargarOutbox().length;
+  const txt = n>0 ? `⏳ ${n} registro${n!==1?'s':''} sin enviar — se reintenta solo` : '';
+  ['outboxIndicator','outboxIndicator2'].forEach(id => {
+    const el = document.getElementById(id); if (!el) return;
+    el.textContent = txt; el.style.display = n>0 ? 'block' : 'none';
+  });
 }
+
+// ─── HELPERS ──────────────────────────────────────────────────────
+function showScreen(id){ document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+function actualizarFecha(){ const d = new Date(); document.getElementById('fechaDisplay').textContent = formatFecha(d) + ' ' + formatHora(d); }
+function formatFecha(d){ return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`; }
+function formatHora(d){ return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; }
+function getLocation(){ return new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{timeout:5000})); }
+
+let toastTimeout;
+function showToast(msg, type=''){ const el=document.getElementById('toast'); el.textContent=msg; el.className='toast show '+type; clearTimeout(toastTimeout); toastTimeout=setTimeout(()=>el.classList.remove('show'),3500); }
+function showLoading(t='Procesando...'){ document.getElementById('loadingText').textContent=t; document.getElementById('loadingOverlay').classList.add('show'); }
+function hideLoading(){ document.getElementById('loadingOverlay').classList.remove('show'); }
+
+setInterval(()=>{ if(state.cuil) actualizarFecha(); }, 60000);
+window.addEventListener('online', flushOutbox);
+setInterval(()=>{ if(cargarOutbox().length>0) flushOutbox(); }, 60000);
+
+if ('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{})); }
 </script>
 </body>
 </html>
