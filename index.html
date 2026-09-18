@@ -51,7 +51,16 @@
   .hcount{font-size:12px;color:var(--text);white-space:nowrap}
   .legend{display:flex;gap:16px;justify-content:flex-end;font-size:12px;color:#5a7a68;margin-bottom:6px}
   .legend .dot{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:middle}
-  @media print{ header,.filtros,.btns,.noprint{display:none!important} .scroll{max-height:none;border:0} body{background:#fff} }
+  @media print{
+    @page{ size:A4 landscape; margin:10mm; }
+    header,.filtros,.btns,.noprint{display:none!important}
+    .scroll{max-height:none;border:0;overflow:visible}
+    .card{box-shadow:none;padding:0;margin:0 0 10px}
+    body{background:#fff}
+    table{font-size:10px;width:100%;table-layout:fixed}
+    th,td{white-space:normal;word-break:break-word;padding:4px 5px}
+    th{position:static}
+  }
 </style>
 </head>
 <body>
@@ -88,7 +97,8 @@
     <div class="btns">
       <button class="btn" onclick="consultar()">Consultar</button>
       <button class="btn sec" onclick="limpiar()">Limpiar</button>
-      <button class="btn sec" onclick="exportCSV()">Descargar CSV</button>
+      <button class="btn sec" onclick="exportExcel()">Descargar Excel</button>
+      <button class="btn sec" onclick="exportCSV()">CSV</button>
       <button class="btn sec" onclick="window.print()">Imprimir / PDF</button>
     </div>
     <div id="msgF" class="msg"></div>
@@ -225,14 +235,32 @@ function pintar(rows){
   });
 }
 
+function filasExport(){
+  var head=['Fecha','Hora','Movimiento','TipoPersona','Nombre','Vehiculo','Patente','Objetivo','Puesto','Observaciones','CUIL'];
+  var rows=DATA.map(function(x){ return [x.fecha,x.hora,x.tipo,x.categoria,x.nombre,x.vehiculo,x.patente,x.objetivo,x.puesto,x.observaciones,x.cuil]; });
+  return {head:head, rows:rows};
+}
+function descargar(blob, nombre){ var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=nombre; a.click(); }
+
+function exportExcel(){
+  if(!DATA.length) return alert('No hay datos para exportar');
+  var d=filasExport();
+  var th=d.head.map(function(h){ return '<th>'+e(h)+'</th>'; }).join('');
+  var body=d.rows.map(function(r){ return '<tr>'+r.map(function(v){ return '<td>'+e(v)+'</td>'; }).join('')+'</tr>'; }).join('');
+  var html='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">'+
+    '<head><meta charset="UTF-8"><style>td{mso-number-format:\\@;} th{background:#145A32;color:#fff;font-weight:bold;}</style></head>'+
+    '<body><table border="1"><tr>'+th+'</tr>'+body+'</table></body></html>';
+  descargar(new Blob(['\ufeff'+html],{type:'application/vnd.ms-excel;charset=utf-8;'}), 'reporte_visitas_'+hoy()+'.xls');
+}
+
 function exportCSV(){
   if(!DATA.length) return alert('No hay datos para exportar');
-  var head=['Fecha','Hora','Movimiento','TipoPersona','Nombre','Vehiculo','Patente','Objetivo','Puesto','Observaciones','CUIL'];
-  var lines=[head.join(';')];
-  DATA.forEach(function(x){ lines.push([x.fecha,x.hora,x.tipo,x.categoria,x.nombre,x.vehiculo,x.patente,x.objetivo,x.puesto,x.observaciones,x.cuil]
-    .map(function(v){ return '"'+String(v==null?'':v).replace(/"/g,'""')+'"'; }).join(';')); });
-  var blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8;'});
-  var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='reporte_visitas_'+hoy()+'.csv'; a.click();
+  var d=filasExport();
+  var lines=[d.head.join(';')];
+  d.rows.forEach(function(r){ lines.push(r.map(function(v){ return '"'+String(v==null?'':v).replace(/"/g,'""')+'"'; }).join(';')); });
+  // "sep=;" le indica a Excel el separador (evita que quede todo en una columna)
+  var blob=new Blob(['\ufeff'+'sep=;\r\n'+lines.join('\r\n')],{type:'text/csv;charset=utf-8;'});
+  descargar(blob, 'reporte_visitas_'+hoy()+'.csv');
 }
 function limpiar(){ ['objetivo','puesto','nombre','patente','cuil'].forEach(id=>document.getElementById(id).value=''); document.getElementById('tipo').value=''; document.getElementById('categoria').value=''; }
 </script>
