@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "com.sgseguridad.sgbialik",
+        "sha256_cert_fingerprints": ["22:64:CC:77:ED:6E:6B:CE:E1:C6:0A:04:1E:B3:6F:01:5D:7F:9F:96:28:A4:91:C2:8D:C6:05:ED:1A:AF:20:C9"]
+      }
+    }]
