@@ -5,169 +5,137 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0a0a">
 <title>SG · Visitas y Proveedores</title>
 <link rel="manifest" href="manifest.json">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap');
-
-  :root {
-    --black: #0a0a0a;
-    --surface: #141414;
-    --surface2: #1e1e1e;
-    --border: #2a2a2a;
-    --text: #f0f0f0;
-    --muted: #666;
-
-    --accent: #1db954;
-    --accent-dark: #158a3e;
-    --accent-soft: rgba(29, 185, 84, 0.14);
-
-    --ok: #1db954;
-    --no: #e63030;
-
-    --s2-bg: #f0faf4;
-    --s2-surface: #ffffff;
-    --s2-border: #b8e0c8;
-    --s2-text: #0f1f16;
-    --s2-muted: #4a7a5c;
-    --s2-header-bg: #1a1a1a;
+  :root{
+    --black:#0a0a0a; --surface:#141414; --surface2:#1e1e1e; --border:#2a2a2a; --text:#f0f0f0; --muted:#666;
+    --accent:#1db954; --accent-dark:#158a3e; --accent-soft:rgba(29,185,84,.14); --ok:#1db954; --no:#e63030;
+    --s2-bg:#f0faf4; --s2-surface:#ffffff; --s2-border:#b8e0c8; --s2-text:#0f1f16; --s2-muted:#4a7a5c;
   }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-  body {
-    background: var(--black); color: var(--text);
-    font-family: 'DM Sans', sans-serif; min-height: 100dvh;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    overflow-x: hidden;
-  }
-
-  .header {
-    position: fixed; top: 0; left: 0; right: 0;
-    background: var(--black); border-bottom: 1px solid var(--border);
-    padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; z-index: 100;
-  }
-  .logo { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 3px; color: var(--accent); user-select: none; }
-  .session-timer { font-size: 12px; color: var(--muted); font-weight: 500; letter-spacing: 1px; display: none; }
-  .session-timer.warning  { color: #f59e0b; }
-  .session-timer.critical { color: var(--no); animation: pulse 1s infinite; }
-
-  .screen { width: 100%; max-width: 480px; padding: 80px 24px 40px; display: none; flex-direction: column; gap: 20px; min-height: 100dvh; }
-  .screen.active { display: flex; }
-
-  .brand-block { text-align: center; padding: 20px 0 10px; }
-  .brand-block .title { font-family: 'Bebas Neue', sans-serif; font-size: 52px; letter-spacing: 6px; color: var(--text); line-height: 1; }
-  .brand-block .subtitle { font-size: 11px; letter-spacing: 4px; color: var(--accent); text-transform: uppercase; margin-top: 6px; }
-
-  .divider { height: 1px; background: var(--border); margin: 4px 0; }
-
-  .field-group { display: flex; flex-direction: column; gap: 8px; }
-  .field-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); font-weight: 600; }
-
-  input[type="text"], input[type="number"], input[type="password"], textarea {
-    width: 100%; background: var(--surface); border: 1px solid var(--border);
-    border-radius: 8px; padding: 14px 16px; color: var(--text);
-    font-family: 'DM Sans', sans-serif; font-size: 16px; outline: none;
-    transition: border-color 0.2s; appearance: none; -webkit-appearance: none;
-  }
-  input:focus, textarea:focus { border-color: var(--accent); }
-  input[type="number"] { -moz-appearance: textfield; }
-
-  .cuil-field { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 5px; text-align: center; }
-  .cuil-field::placeholder { font-family: 'DM Sans', sans-serif; font-size: 14px; letter-spacing: 1px; opacity: 0.35; }
-
-  .btn { width: 100%; padding: 16px; border: none; border-radius: 8px; font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 3px; cursor: pointer; transition: all 0.15s; }
-  .btn:active { transform: scale(0.98); }
-  .btn:disabled { opacity: 0.5; }
-  .btn-primary { background: var(--accent); color: white; }
-  .btn-primary:hover { background: var(--accent-dark); }
-  .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; letter-spacing: 1px; }
-
-  /* SCREEN 2 (claro, uso diurno en puesto) */
-  #screen2 { background: var(--s2-bg); color: var(--s2-text); }
-  #screen2 .field-label { color: var(--s2-muted); }
-  #screen2 input, #screen2 textarea { background: var(--s2-surface); border-color: var(--s2-border); color: var(--s2-text); }
-  #screen2 input:focus, #screen2 textarea:focus { border-color: var(--accent); }
-  #screen2 .info-bar { background: var(--s2-header-bg); border-color: #333; }
-  #screen2 .btn-secondary { background: #e0e0e0; color: #333; border-color: #ccc; }
-  #screen2 .opt { border-color: var(--s2-border); background: var(--s2-surface); color: var(--s2-text); }
-
-  .selector { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .opt {
-    padding: 20px 10px; border: 2px solid var(--border); border-radius: 10px;
-    background: var(--surface); color: var(--text);
-    font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 2px;
-    cursor: pointer; transition: all 0.15s; -webkit-appearance: none;
-  }
-  .opt:active { transform: scale(0.97); }
-  .opt.sel-ing, #screen2 .opt.sel-ing { background: #d4f5e2; border-color: var(--ok); color: #0f5c2a; }
-  .opt.sel-egr, #screen2 .opt.sel-egr { background: #fde8e8; border-color: var(--no); color: #7f1d1d; }
-  .opt.sel-gen, #screen2 .opt.sel-gen { background: #d4f5e2; border-color: var(--accent); color: #0f5c2a; }
-
-  textarea { resize: none; height: 80px; line-height: 1.5; }
-
-  .info-bar { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; }
-  .info-bar-label { font-size: 10px; letter-spacing: 2px; color: #888; text-transform: uppercase; }
-  .info-bar-value { font-size: 13px; font-weight: 600; color: #f0f0f0; }
-
-  .hidden { display: none; }
-
-  .toast {
-    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(140px);
-    background: var(--surface2); border: 1px solid var(--border); border-radius: 10px;
-    padding: 14px 24px; font-size: 14px; font-weight: 500; z-index: 999;
-    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); max-width: 90vw; text-align: center;
-  }
-  .toast.show { transform: translateX(-50%) translateY(0); }
-  .toast.success { border-color: var(--ok); color: var(--ok); }
-  .toast.error { border-color: var(--no); color: var(--no); }
-
-  .loading-overlay { position: fixed; inset: 0; background: rgba(10,10,10,0.85); display: none; flex-direction: column; align-items: center; justify-content: center; gap: 16px; z-index: 200; backdrop-filter: blur(4px); }
-  .loading-overlay.show { display: flex; }
-  .loading-spinner { width: 44px; height: 44px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
-  .loading-text { font-size: 13px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
-
-  @keyframes spin  { to { transform: rotate(360deg); } }
-  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{background:var(--black);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow-x:hidden}
+  .header{position:fixed;top:0;left:0;right:0;background:var(--black);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;z-index:100}
+  .logo{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;color:var(--accent);user-select:none;cursor:pointer}
+  .session-timer{font-size:12px;color:var(--muted);font-weight:500;letter-spacing:1px;display:none}
+  .session-timer.warning{color:#f59e0b} .session-timer.critical{color:var(--no);animation:pulse 1s infinite}
+  .screen{width:100%;max-width:480px;padding:80px 24px 40px;display:none;flex-direction:column;gap:20px;min-height:100dvh}
+  .screen.active{display:flex}
+  .brand-block{text-align:center;padding:20px 0 10px}
+  .brand-block .title{font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:6px;color:var(--text);line-height:1}
+  .brand-block .subtitle{font-size:11px;letter-spacing:4px;color:var(--accent);text-transform:uppercase;margin-top:6px}
+  .divider{height:1px;background:var(--border);margin:4px 0}
+  .field-group{display:flex;flex-direction:column;gap:8px}
+  .field-label{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);font-weight:600}
+  input,textarea,select{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:16px;outline:none;transition:border-color .2s;appearance:none;-webkit-appearance:none}
+  input:focus,textarea:focus,select:focus{border-color:var(--accent)}
+  input[type=number]{-moz-appearance:textfield}
+  .cuil-field{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:5px;text-align:center}
+  .cuil-field::placeholder{font-family:'DM Sans',sans-serif;font-size:14px;letter-spacing:1px;opacity:.35}
+  .btn{width:100%;padding:16px;border:none;border-radius:8px;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;cursor:pointer;transition:all .15s}
+  .btn:active{transform:scale(.98)} .btn:disabled{opacity:.5}
+  .btn-primary{background:var(--accent);color:#fff} .btn-primary:hover{background:var(--accent-dark)}
+  .btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;letter-spacing:1px}
+  #screen2{background:var(--s2-bg);color:var(--s2-text)}
+  #screen2 .field-label{color:var(--s2-muted)}
+  #screen2 input,#screen2 textarea{background:var(--s2-surface);border-color:var(--s2-border);color:var(--s2-text)}
+  #screen2 .info-bar{background:#1a1a1a;border-color:#333}
+  #screen2 .btn-secondary{background:#e0e0e0;color:#333;border-color:#ccc}
+  #screen2 .opt{border-color:var(--s2-border);background:var(--s2-surface);color:var(--s2-text)}
+  .selector{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .opt{padding:20px 10px;border:2px solid var(--border);border-radius:10px;background:var(--surface);color:var(--text);font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;cursor:pointer;transition:all .15s}
+  .opt:active{transform:scale(.97)}
+  .opt.sel-ing,#screen2 .opt.sel-ing{background:#d4f5e2;border-color:var(--ok);color:#0f5c2a}
+  .opt.sel-egr,#screen2 .opt.sel-egr{background:#fde8e8;border-color:var(--no);color:#7f1d1d}
+  .opt.sel-gen,#screen2 .opt.sel-gen{background:#d4f5e2;border-color:var(--accent);color:#0f5c2a}
+  textarea{resize:none;height:80px;line-height:1.5}
+  .info-bar{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between}
+  .info-bar-label{font-size:10px;letter-spacing:2px;color:#888;text-transform:uppercase}
+  .info-bar-value{font-size:13px;font-weight:600;color:#f0f0f0}
+  .hidden{display:none}
+  .toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(140px);background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 24px;font-size:14px;font-weight:500;z-index:999;transition:transform .3s cubic-bezier(.34,1.56,.64,1);max-width:90vw;text-align:center}
+  .toast.show{transform:translateX(-50%) translateY(0)}
+  .toast.success{border-color:var(--ok);color:var(--ok)} .toast.error{border-color:var(--no);color:var(--no)}
+  .loading-overlay{position:fixed;inset:0;background:rgba(10,10,10,.85);display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:200;backdrop-filter:blur(4px)}
+  .loading-overlay.show{display:flex}
+  .loading-spinner{width:44px;height:44px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+  .loading-text{font-size:13px;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
+  @keyframes spin{to{transform:rotate(360deg)}} @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  /* CONFIG DISPOSITIVO */
+  .config-screen{position:fixed;inset:0;background:var(--black);z-index:600;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:32px 24px}
+  .config-screen.show{display:flex}
+  .cfg-brand{font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:6px;color:var(--accent);line-height:1}
+  .cfg-sub{font-size:11px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-bottom:8px}
+  .config-box{width:100%;max-width:340px;display:flex;flex-direction:column;gap:12px}
+  .cfg-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:-6px}
+  .cfg-error{color:var(--no);font-size:13px;text-align:center;display:none}
+  .cfg-link{color:var(--accent);font-size:13px;text-align:center;cursor:pointer;text-decoration:underline}
 </style>
 </head>
 <body>
 
+<!-- ══ CONFIG DEL DISPOSITIVO ══ -->
+<div class="config-screen" id="configScreen">
+  <div class="cfg-brand">SG · VISITAS</div>
+  <div class="cfg-sub">Configuración del dispositivo</div>
+
+  <!-- paso 1: clave -->
+  <div class="config-box" id="cfgStep1">
+    <div class="cfg-label">Clave de administrador</div>
+    <input type="password" id="cfgClave" placeholder="Clave" onkeydown="if(event.key==='Enter')verificarClaveConfig()">
+    <div class="cfg-error" id="cfgError1">Clave incorrecta</div>
+    <button class="btn btn-primary" onclick="verificarClaveConfig()">CONTINUAR</button>
+  </div>
+
+  <!-- paso 2: elegir objetivo/puesto -->
+  <div class="config-box hidden" id="cfgStep2">
+    <div class="cfg-label">Objetivo</div>
+    <select id="cfgObjetivo" onchange="onCfgObjetivo()"></select>
+    <div class="cfg-label">Puesto</div>
+    <select id="cfgPuesto"></select>
+    <button class="btn btn-primary" onclick="guardarConfigDispositivo(false)" style="margin-top:6px">GUARDAR Y ACTIVAR</button>
+    <div class="cfg-link" onclick="toggleNuevo()">➕ Crear objetivo / puesto nuevo</div>
+
+    <div class="hidden" id="cfgNuevo" style="display:flex;flex-direction:column;gap:12px;border-top:1px solid var(--border);padding-top:12px">
+      <div class="cfg-label">Nuevo objetivo</div>
+      <input type="text" id="cfgObjNuevo" placeholder="Ej: PLANTA NORTE">
+      <div class="cfg-label">Nuevo puesto</div>
+      <input type="text" id="cfgPueNuevo" placeholder="Ej: PORTON 1">
+      <button class="btn btn-primary" onclick="guardarConfigDispositivo(true)">CREAR Y ACTIVAR</button>
+    </div>
+    <div class="cfg-error" id="cfgError2"></div>
+  </div>
+</div>
+
 <div class="header">
-  <div class="logo">SG</div>
+  <div class="logo" id="logo">SG</div>
   <div class="session-timer" id="sessionTimer">SESIÓN: 10:00</div>
 </div>
 
 <!-- ══ SCREEN 1 — LOGIN ══ -->
-<div class="screen active" id="screen1">
+<div class="screen" id="screen1">
   <div class="brand-block">
     <div class="title">VISITAS</div>
     <div class="subtitle">Proveedores y visitas · ingreso / egreso</div>
   </div>
-
   <div class="divider"></div>
-
   <div class="field-group">
     <div class="field-label">CUIL del registrador</div>
     <input type="number" class="cuil-field" id="cuilInput" placeholder="20304050607" inputmode="numeric">
   </div>
-
-  <div style="background:#1a1a1a; border-radius:8px; padding:12px 16px; border:1px solid #2a2a2a;">
-    <div style="font-size:10px; letter-spacing:2px; color:#666; text-transform:uppercase; margin-bottom:4px;">Objetivo / Puesto</div>
-    <div id="puestoInfoLabel" style="font-size:15px; font-weight:600; color:#f0f0f0;">—</div>
+  <div style="background:#1a1a1a;border-radius:8px;padding:12px 16px;border:1px solid #2a2a2a">
+    <div style="font-size:10px;letter-spacing:2px;color:#666;text-transform:uppercase;margin-bottom:4px">Objetivo / Puesto</div>
+    <div id="puestoInfoLabel" style="font-size:15px;font-weight:600;color:#f0f0f0">—</div>
   </div>
-
   <button class="btn btn-primary" onclick="iniciarSesion()">INGRESAR</button>
-
   <div class="divider"></div>
-  <div id="outboxIndicator" style="display:none; background:#3a2e0d; border:1px solid #6b5410; color:#f0c000; font-size:12px; font-weight:600; padding:9px 12px; border-radius:8px; text-align:center;"></div>
+  <div id="outboxIndicator" style="display:none;background:#3a2e0d;border:1px solid #6b5410;color:#f0c000;font-size:12px;font-weight:600;padding:9px 12px;border-radius:8px;text-align:center"></div>
 </div>
 
 <!-- ══ SCREEN 2 — REGISTRO ══ -->
 <div class="screen" id="screen2">
-
   <div class="info-bar">
     <div>
       <div class="info-bar-label">Registrador</div>
@@ -180,15 +148,13 @@
       <div class="info-bar-value" id="fechaDisplay">—</div>
     </div>
   </div>
-
   <div class="field-group">
     <div class="field-label">Movimiento</div>
     <div class="selector">
-      <button type="button" class="opt" id="btnIngreso" onclick="pick('tipo','INGRESO',this)">🟢 INGRESO</button>
-      <button type="button" class="opt" id="btnEgreso"  onclick="pick('tipo','EGRESO',this)">🔴 EGRESO</button>
+      <button type="button" class="opt" onclick="pick('tipo','INGRESO',this)">🟢 INGRESO</button>
+      <button type="button" class="opt" onclick="pick('tipo','EGRESO',this)">🔴 EGRESO</button>
     </div>
   </div>
-
   <div class="field-group">
     <div class="field-label">Tipo de persona</div>
     <div class="selector">
@@ -196,12 +162,10 @@
       <button type="button" class="opt" onclick="pick('categoria','VISITA',this)">VISITA</button>
     </div>
   </div>
-
   <div class="field-group">
     <div class="field-label">Nombre y apellido</div>
     <input type="text" id="nombreInput" placeholder="Ej: Juan Pérez" autocomplete="off">
   </div>
-
   <div class="field-group">
     <div class="field-label">¿Ingresa con vehículo?</div>
     <div class="selector">
@@ -209,209 +173,238 @@
       <button type="button" class="opt" onclick="pick('vehiculo','NO',this)">NO</button>
     </div>
   </div>
-
   <div class="field-group hidden" id="patenteGroup">
     <div class="field-label">Patente</div>
-    <input type="text" id="patenteInput" placeholder="AB123CD" autocomplete="off" style="text-transform:uppercase; font-family:'Bebas Neue',sans-serif; font-size:24px; letter-spacing:4px; text-align:center;">
+    <input type="text" id="patenteInput" placeholder="AB123CD" autocomplete="off" style="text-transform:uppercase;font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:4px;text-align:center">
   </div>
-
   <div class="field-group">
     <div class="field-label">Observaciones</div>
     <textarea id="obsInput" placeholder="Opcional"></textarea>
   </div>
-
-  <div id="outboxIndicator2" style="display:none; background:#fff8e1; border:1px solid #f59e0b; color:#78350f; font-size:12px; font-weight:600; padding:9px 12px; border-radius:8px; text-align:center; margin-bottom:4px;"></div>
-
+  <div id="outboxIndicator2" style="display:none;background:#fff8e1;border:1px solid #f59e0b;color:#78350f;font-size:12px;font-weight:600;padding:9px 12px;border-radius:8px;text-align:center;margin-bottom:4px"></div>
   <button class="btn btn-primary" onclick="enviarRegistro()">ENVIAR REGISTRO</button>
   <button class="btn btn-secondary" onclick="cerrarSesion()">Cerrar sesión</button>
 </div>
 
-<div class="loading-overlay" id="loadingOverlay">
-  <div class="loading-spinner"></div>
-  <div class="loading-text" id="loadingText">Procesando...</div>
-</div>
+<div class="loading-overlay" id="loadingOverlay"><div class="loading-spinner"></div><div class="loading-text" id="loadingText">Procesando...</div></div>
 <div class="toast" id="toast"></div>
 
 <script>
 // ══════════════════════════════════════════════════════════════════
-// SG · VISITAS Y PROVEEDORES — v1.0.0
+// SG · VISITAS Y PROVEEDORES — v2  (config de dispositivo + offline)
 // ══════════════════════════════════════════════════════════════════
 const CONFIG = {
   APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbym_DLVDCc3QRTNH4ux14KnARkMB9pHwDjI788BhoYQvrlhZwE8fy7WISmqRB9sDr0q/exec',
   SECRET_TOKEN:    'EL4ZJFkzTR1gVPf3eOEEHdSyuqEAHvDTJwprVlkSMziuMMo1TFu2ToDpxucPVj3t',
   SESSION_MINUTES: 10,
 };
-
 const KEY_OUTBOX = 'sgvis_outbox';
+const KEY_DEVICE = 'sgvis_device';
 
 let state = { cuil:null, objetivo:null, puesto:null, tipo:null, categoria:null, vehiculo:null,
-              sessionTimer:null, sessionSeconds: CONFIG.SESSION_MINUTES*60 };
+              sessionTimer:null, sessionSeconds:CONFIG.SESSION_MINUTES*60 };
+let CFG_KEY = '';        // clave admin ingresada en la config (no se guarda)
+let CFG_MAP = {};        // objetivo -> [puestos]
 
 // ─── INIT ─────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
-  const params = new URLSearchParams(location.search);
-  state.objetivo = (params.get('objetivo')||'').toUpperCase();
-  state.puesto   = (params.get('puesto')||'').toUpperCase();
-  document.getElementById('puestoInfoLabel').textContent =
-    (state.objetivo||'Sin objetivo') + ' — Puesto ' + (state.puesto||'—');
+  configurarLongPress();
   actualizarIndicadorOutbox();
   flushOutbox();
+
+  const params = new URLSearchParams(location.search);
+  const pObj = params.get('objetivo'), pPst = params.get('puesto');
+  if (pObj && pPst) { state.objetivo=pObj.toUpperCase(); state.puesto=pPst.toUpperCase(); arrancarLogin(); return; }
+
+  const dev = cargarDevice();
+  if (dev && dev.objetivo && dev.puesto) { state.objetivo=dev.objetivo; state.puesto=dev.puesto; arrancarLogin(); return; }
+
+  mostrarConfig();
 });
 
-// ─── SESIÓN ───────────────────────────────────────────────────────
-function iniciarSesion() {
-  const v = document.getElementById('cuilInput').value.replace(/\D/g,'');
-  if (v.length !== 11) { return showToast('Ingresá un CUIL válido de 11 dígitos', 'error'); }
-  state.cuil = v;
-  document.getElementById('cuilDisplay').textContent = v;
-  document.getElementById('puestoDisplay').textContent =
-    (state.objetivo||'—') + ' / ' + (state.puesto||'—');
-  actualizarFecha();
-  showScreen('screen2');
-  resetTimer();
-}
-
-function cerrarSesion() {
-  clearInterval(state.sessionTimer);
-  document.getElementById('sessionTimer').style.display = 'none';
-  state.cuil = null; limpiarFormulario();
-  document.getElementById('cuilInput').value = '';
+function arrancarLogin(){
+  document.getElementById('configScreen').classList.remove('show');
+  document.getElementById('puestoInfoLabel').textContent = (state.objetivo||'—') + ' — Puesto ' + (state.puesto||'—');
   showScreen('screen1');
 }
 
-function resetTimer() {
-  clearInterval(state.sessionTimer);
-  state.sessionSeconds = CONFIG.SESSION_MINUTES*60;
-  const el = document.getElementById('sessionTimer');
-  el.style.display = 'block';
-  pintarTimer();
-  state.sessionTimer = setInterval(() => {
-    state.sessionSeconds--;
-    pintarTimer();
-    if (state.sessionSeconds <= 0) { showToast('Sesión expirada', 'error'); cerrarSesion(); }
-  }, 1000);
+// ─── CONFIG DISPOSITIVO ───────────────────────────────────────────
+function cargarDevice(){ try { return JSON.parse(localStorage.getItem(KEY_DEVICE)||'null'); } catch { return null; } }
+function mostrarConfig(){
+  document.getElementById('cfgStep1').classList.remove('hidden');
+  document.getElementById('cfgStep2').classList.add('hidden');
+  document.getElementById('cfgClave').value='';
+  document.getElementById('cfgError1').style.display='none';
+  document.getElementById('configScreen').classList.add('show');
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
 }
-function pintarTimer() {
-  const m = Math.floor(state.sessionSeconds/60), s = state.sessionSeconds%60;
-  const el = document.getElementById('sessionTimer');
-  el.textContent = 'SESIÓN: ' + m + ':' + String(s).padStart(2,'0');
-  el.className = 'session-timer' + (state.sessionSeconds<=30 ? ' critical' : state.sessionSeconds<=120 ? ' warning' : '');
+async function verificarClaveConfig(){
+  const clave = document.getElementById('cfgClave').value.trim();
+  if(!clave) return;
+  showLoading('Verificando...');
+  try{
+    const r = await fetch(CONFIG.APPS_SCRIPT_URL+'?action=listarConfig&token='+encodeURIComponent(clave), {redirect:'follow'});
+    const d = await r.json();
+    hideLoading();
+    if(!d.ok){ document.getElementById('cfgError1').style.display='block'; return; }
+    CFG_KEY = clave;
+    CFG_MAP = {};
+    (d.items||[]).forEach(it=>{ (CFG_MAP[it.objetivo]=CFG_MAP[it.objetivo]||[]).push(it.puesto); });
+    pintarObjetivos();
+    document.getElementById('cfgStep1').classList.add('hidden');
+    document.getElementById('cfgStep2').classList.remove('hidden');
+  }catch(e){ hideLoading(); document.getElementById('cfgError1').textContent='Sin conexión'; document.getElementById('cfgError1').style.display='block'; }
+}
+function pintarObjetivos(){
+  const sel = document.getElementById('cfgObjetivo');
+  const objs = Object.keys(CFG_MAP);
+  sel.innerHTML = objs.length ? objs.map(o=>`<option>${esc(o)}</option>`).join('') : '<option value="">(no hay objetivos — creá uno)</option>';
+  onCfgObjetivo();
+}
+function onCfgObjetivo(){
+  const o = document.getElementById('cfgObjetivo').value;
+  const sel = document.getElementById('cfgPuesto');
+  const pts = CFG_MAP[o]||[];
+  sel.innerHTML = pts.length ? pts.map(p=>`<option>${esc(p)}</option>`).join('') : '<option value="">(sin puestos)</option>';
+}
+function toggleNuevo(){ document.getElementById('cfgNuevo').classList.toggle('hidden'); }
+
+async function guardarConfigDispositivo(nuevo){
+  let objetivo, puesto;
+  if(nuevo){
+    objetivo = document.getElementById('cfgObjNuevo').value.trim().toUpperCase();
+    puesto   = document.getElementById('cfgPueNuevo').value.trim().toUpperCase();
+    if(!objetivo||!puesto){ return cfgErr2('Completá objetivo y puesto'); }
+    showLoading('Creando...');
+    try{
+      await fetch(CONFIG.APPS_SCRIPT_URL+'?action=guardarPuesto&token='+encodeURIComponent(CFG_KEY)+
+        '&objetivo='+encodeURIComponent(objetivo)+'&puesto='+encodeURIComponent(puesto), {redirect:'follow'});
+    }catch(e){}
+    hideLoading();
+  } else {
+    objetivo = document.getElementById('cfgObjetivo').value.trim();
+    puesto   = document.getElementById('cfgPuesto').value.trim();
+    if(!objetivo||!puesto){ return cfgErr2('Elegí objetivo y puesto (o creá uno nuevo)'); }
+  }
+  localStorage.setItem(KEY_DEVICE, JSON.stringify({objetivo, puesto}));
+  state.objetivo=objetivo; state.puesto=puesto;
+  CFG_KEY='';
+  arrancarLogin();
+}
+function cfgErr2(t){ const e=document.getElementById('cfgError2'); e.textContent=t; e.style.display='block'; }
+
+function configurarLongPress(){
+  const logo = document.getElementById('logo'); let t=null;
+  const start=()=>{ t=setTimeout(()=>{ if(confirm('¿Reconfigurar este dispositivo (cambiar objetivo/puesto)?')){ localStorage.removeItem(KEY_DEVICE); location.reload(); } }, 1200); };
+  const cancel=()=>clearTimeout(t);
+  logo.addEventListener('touchstart',start); logo.addEventListener('touchend',cancel); logo.addEventListener('touchmove',cancel);
+  logo.addEventListener('mousedown',start); logo.addEventListener('mouseup',cancel); logo.addEventListener('mouseleave',cancel);
+}
+
+// ─── SESIÓN ───────────────────────────────────────────────────────
+function iniciarSesion(){
+  const v = document.getElementById('cuilInput').value.replace(/\D/g,'');
+  if(v.length!==11) return showToast('Ingresá un CUIL válido de 11 dígitos','error');
+  state.cuil=v;
+  document.getElementById('cuilDisplay').textContent=v;
+  document.getElementById('puestoDisplay').textContent=(state.objetivo||'—')+' / '+(state.puesto||'—');
+  actualizarFecha(); showScreen('screen2'); resetTimer();
+}
+function cerrarSesion(){
+  clearInterval(state.sessionTimer);
+  document.getElementById('sessionTimer').style.display='none';
+  state.cuil=null; limpiarFormulario();
+  document.getElementById('cuilInput').value=''; showScreen('screen1');
+}
+function resetTimer(){
+  clearInterval(state.sessionTimer); state.sessionSeconds=CONFIG.SESSION_MINUTES*60;
+  const el=document.getElementById('sessionTimer'); el.style.display='block'; pintarTimer();
+  state.sessionTimer=setInterval(()=>{ state.sessionSeconds--; pintarTimer(); if(state.sessionSeconds<=0){ showToast('Sesión expirada','error'); cerrarSesion(); } },1000);
+}
+function pintarTimer(){
+  const m=Math.floor(state.sessionSeconds/60), s=state.sessionSeconds%60, el=document.getElementById('sessionTimer');
+  el.textContent='SESIÓN: '+m+':'+String(s).padStart(2,'0');
+  el.className='session-timer'+(state.sessionSeconds<=30?' critical':state.sessionSeconds<=120?' warning':'');
 }
 
 // ─── FORM ─────────────────────────────────────────────────────────
-function pick(grupo, valor, el) {
-  state[grupo] = valor;
-  const cont = el.parentElement;
-  cont.querySelectorAll('.opt').forEach(o => o.className = 'opt');
-  if (grupo === 'tipo') el.className = 'opt ' + (valor==='INGRESO' ? 'sel-ing' : 'sel-egr');
-  else el.className = 'opt sel-gen';
-  if (grupo === 'vehiculo') {
-    document.getElementById('patenteGroup').classList.toggle('hidden', valor!=='SI');
-    if (valor!=='SI') document.getElementById('patenteInput').value = '';
-  }
+function pick(grupo,valor,el){
+  state[grupo]=valor;
+  el.parentElement.querySelectorAll('.opt').forEach(o=>o.className='opt');
+  if(grupo==='tipo') el.className='opt '+(valor==='INGRESO'?'sel-ing':'sel-egr'); else el.className='opt sel-gen';
+  if(grupo==='vehiculo'){ document.getElementById('patenteGroup').classList.toggle('hidden',valor!=='SI'); if(valor!=='SI') document.getElementById('patenteInput').value=''; }
   resetTimer();
 }
-
-function limpiarFormulario() {
-  document.getElementById('nombreInput').value = '';
-  document.getElementById('patenteInput').value = '';
-  document.getElementById('obsInput').value = '';
-  document.getElementById('patenteGroup').classList.add('hidden');
-  document.querySelectorAll('#screen2 .opt').forEach(o => o.className = 'opt');
-  state.tipo = null; state.categoria = null; state.vehiculo = null;
+function limpiarFormulario(){
+  document.getElementById('nombreInput').value=''; document.getElementById('patenteInput').value='';
+  document.getElementById('obsInput').value=''; document.getElementById('patenteGroup').classList.add('hidden');
+  document.querySelectorAll('#screen2 .opt').forEach(o=>o.className='opt');
+  state.tipo=null; state.categoria=null; state.vehiculo=null;
 }
 
 // ─── ENVIAR ───────────────────────────────────────────────────────
-async function enviarRegistro() {
-  if (!state.tipo)      return showToast('Elegí INGRESO o EGRESO', 'error');
-  if (!state.categoria) return showToast('Elegí PROVEEDOR o VISITA', 'error');
-  const nombre = document.getElementById('nombreInput').value.trim();
-  if (!nombre)          return showToast('Ingresá el nombre', 'error');
-  if (!state.vehiculo)  return showToast('Indicá si ingresa con vehículo', 'error');
-  const patente = document.getElementById('patenteInput').value.trim().toUpperCase();
-  if (state.vehiculo === 'SI' && !patente) return showToast('Falta la patente', 'error');
+async function enviarRegistro(){
+  if(!state.objetivo||!state.puesto) return showToast('Dispositivo sin configurar (mantené presionado "SG")','error');
+  if(!state.tipo) return showToast('Elegí INGRESO o EGRESO','error');
+  if(!state.categoria) return showToast('Elegí PROVEEDOR o VISITA','error');
+  const nombre=document.getElementById('nombreInput').value.trim();
+  if(!nombre) return showToast('Ingresá el nombre','error');
+  if(!state.vehiculo) return showToast('Indicá si ingresa con vehículo','error');
+  const patente=document.getElementById('patenteInput').value.trim().toUpperCase();
+  if(state.vehiculo==='SI' && !patente) return showToast('Falta la patente','error');
 
   showLoading('Preparando registro...');
-  let lat = '', lon = '';
-  try { const pos = await getLocation(); lat = pos.coords.latitude.toFixed(6); lon = pos.coords.longitude.toFixed(6); } catch(e){}
+  let lat='',lon='';
+  try{ const pos=await getLocation(); lat=pos.coords.latitude.toFixed(6); lon=pos.coords.longitude.toFixed(6); }catch(e){}
   hideLoading();
 
-  const payload = {
-    action:'registrar', token: CONFIG.SECRET_TOKEN,
-    cuil: state.cuil, objetivo: state.objetivo, puesto: state.puesto,
-    tipo: state.tipo, categoria: state.categoria, nombre,
-    vehiculo: state.vehiculo, patente, observaciones: document.getElementById('obsInput').value.trim(),
-    lat, lon
-  };
+  const payload={ action:'registrar', token:CONFIG.SECRET_TOKEN, cuil:state.cuil, objetivo:state.objetivo, puesto:state.puesto,
+    tipo:state.tipo, categoria:state.categoria, nombre, vehiculo:state.vehiculo, patente,
+    observaciones:document.getElementById('obsInput').value.trim(), lat, lon };
 
-  if (!agregarAOutbox(payload)) {
-    return showToast('⚠️ Memoria del dispositivo llena. Conectate para enviar los pendientes.', 'error');
-  }
-  showToast('✅ Registro guardado', 'success');
-  limpiarFormulario();
-  resetTimer();
-  flushOutbox();
+  if(!agregarAOutbox(payload)) return showToast('⚠️ Memoria del dispositivo llena. Conectate para enviar.','error');
+  showToast('✅ Registro guardado','success'); limpiarFormulario(); resetTimer(); flushOutbox();
 }
 
-// ─── BANDEJA DE SALIDA (offline) ──────────────────────────────────
-let _flushing = false;
-function cargarOutbox(){ try { return JSON.parse(localStorage.getItem(KEY_OUTBOX)||'[]'); } catch { return []; } }
-function guardarOutboxArr(arr){ try { localStorage.setItem(KEY_OUTBOX, JSON.stringify(arr)); return true; } catch(e){ return false; } }
-function agregarAOutbox(payload){
-  const id = Date.now() + '-' + Math.random().toString(36).slice(2,8);
-  payload.regId = id;
-  const arr = cargarOutbox(); arr.push({ id, payload });
-  const ok = guardarOutboxArr(arr); actualizarIndicadorOutbox(); return ok;
-}
-function quitarDeOutbox(id){ guardarOutboxArr(cargarOutbox().filter(it => it.id !== id)); actualizarIndicadorOutbox(); }
-
+// ─── BANDEJA OFFLINE ──────────────────────────────────────────────
+let _flushing=false;
+function cargarOutbox(){ try{ return JSON.parse(localStorage.getItem(KEY_OUTBOX)||'[]'); }catch{ return []; } }
+function guardarOutboxArr(a){ try{ localStorage.setItem(KEY_OUTBOX,JSON.stringify(a)); return true; }catch(e){ return false; } }
+function agregarAOutbox(p){ const id=Date.now()+'-'+Math.random().toString(36).slice(2,8); p.regId=id; const a=cargarOutbox(); a.push({id,payload:p}); const ok=guardarOutboxArr(a); actualizarIndicadorOutbox(); return ok; }
+function quitarDeOutbox(id){ guardarOutboxArr(cargarOutbox().filter(it=>it.id!==id)); actualizarIndicadorOutbox(); }
 async function flushOutbox(){
-  if (_flushing) return;
-  const arr = cargarOutbox();
-  if (arr.length === 0) { actualizarIndicadorOutbox(); return; }
-  _flushing = true;
-  try {
-    for (const item of arr) {
-      let enviado = false;
-      for (let intento = 0; intento < 2 && !enviado; intento++) {
-        try {
-          const resp = await fetch(CONFIG.APPS_SCRIPT_URL, { method:'POST', body: JSON.stringify(item.payload), redirect:'follow' });
-          const result = await resp.json();
-          if (result && result.ok) enviado = true;   // backend responde { ok:true }
-        } catch(e) {}
-        if (!enviado && intento === 0) await new Promise(r => setTimeout(r, 1500));
+  if(_flushing) return; const a=cargarOutbox(); if(!a.length){ actualizarIndicadorOutbox(); return; } _flushing=true;
+  try{
+    for(const item of a){
+      let ok=false;
+      for(let i=0;i<2&&!ok;i++){
+        try{ const r=await fetch(CONFIG.APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify(item.payload),redirect:'follow'}); const d=await r.json(); if(d&&d.ok) ok=true; }catch(e){}
+        if(!ok&&i===0) await new Promise(r=>setTimeout(r,1500));
       }
-      if (enviado) quitarDeOutbox(item.id); else break;
+      if(ok) quitarDeOutbox(item.id); else break;
     }
-  } finally { _flushing = false; actualizarIndicadorOutbox(); }
+  } finally { _flushing=false; actualizarIndicadorOutbox(); }
 }
-
 function actualizarIndicadorOutbox(){
-  const n = cargarOutbox().length;
-  const txt = n>0 ? `⏳ ${n} registro${n!==1?'s':''} sin enviar — se reintenta solo` : '';
-  ['outboxIndicator','outboxIndicator2'].forEach(id => {
-    const el = document.getElementById(id); if (!el) return;
-    el.textContent = txt; el.style.display = n>0 ? 'block' : 'none';
-  });
+  const n=cargarOutbox().length, txt=n>0?`⏳ ${n} registro${n!==1?'s':''} sin enviar — se reintenta solo`:'';
+  ['outboxIndicator','outboxIndicator2'].forEach(id=>{ const el=document.getElementById(id); if(!el) return; el.textContent=txt; el.style.display=n>0?'block':'none'; });
 }
 
 // ─── HELPERS ──────────────────────────────────────────────────────
-function showScreen(id){ document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
-function actualizarFecha(){ const d = new Date(); document.getElementById('fechaDisplay').textContent = formatFecha(d) + ' ' + formatHora(d); }
+function showScreen(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+function actualizarFecha(){ const d=new Date(); document.getElementById('fechaDisplay').textContent=formatFecha(d)+' '+formatHora(d); }
 function formatFecha(d){ return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`; }
 function formatHora(d){ return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; }
 function getLocation(){ return new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{timeout:5000})); }
-
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 let toastTimeout;
-function showToast(msg, type=''){ const el=document.getElementById('toast'); el.textContent=msg; el.className='toast show '+type; clearTimeout(toastTimeout); toastTimeout=setTimeout(()=>el.classList.remove('show'),3500); }
+function showToast(m,t=''){ const el=document.getElementById('toast'); el.textContent=m; el.className='toast show '+t; clearTimeout(toastTimeout); toastTimeout=setTimeout(()=>el.classList.remove('show'),3500); }
 function showLoading(t='Procesando...'){ document.getElementById('loadingText').textContent=t; document.getElementById('loadingOverlay').classList.add('show'); }
 function hideLoading(){ document.getElementById('loadingOverlay').classList.remove('show'); }
-
-setInterval(()=>{ if(state.cuil) actualizarFecha(); }, 60000);
+setInterval(()=>{ if(state.cuil) actualizarFecha(); },60000);
 window.addEventListener('online', flushOutbox);
-setInterval(()=>{ if(cargarOutbox().length>0) flushOutbox(); }, 60000);
-
-if ('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{})); }
+setInterval(()=>{ if(cargarOutbox().length>0) flushOutbox(); },60000);
+if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{})); }
 </script>
 </body>
 </html>
