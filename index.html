@@ -6,7 +6,7 @@
 <title>SG · Reportes de Visitas y Proveedores</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap');
-  :root{ --black:#0a0a0a; --accent:#1db954; --accent-dark:#158a3e; --light:#f0faf4; --border:#dfeee6; --bg:#eef2f0; --text:#0f1f16; --no:#e63030; }
+  :root{ --black:#0a0a0a; --accent:#1db954; --accent-dark:#158a3e; --amber:#f59e0b; --light:#f0faf4; --border:#dfeee6; --bg:#eef2f0; --text:#0f1f16; --no:#e63030; }
   *{box-sizing:border-box}
   body{margin:0;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text)}
   header{background:var(--black);color:#fff;padding:16px 20px;display:flex;align-items:center;justify-content:space-between}
@@ -30,11 +30,27 @@
   tr:nth-child(even) td{background:#fafcfb}
   .tag{padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;color:#fff}
   .ing{background:var(--accent)} .egr{background:var(--no)}
-  .scroll{overflow:auto;max-height:65vh;border:1px solid #eee;border-radius:10px}
+  .scroll{overflow:auto;max-height:60vh;border:1px solid #eee;border-radius:10px}
   .msg{padding:10px;border-radius:8px;margin-top:10px;font-weight:600;font-size:13px;display:none}
   .msg.ok{background:var(--light);color:var(--accent-dark);display:block} .msg.err{background:#fdecea;color:#922;display:block}
-  .total{font-weight:700;color:var(--accent-dark);margin:10px 0}
   .small{font-size:12px;color:#5a7a68}
+  /* métricas */
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+  .tile{border:1.5px solid var(--border);border-radius:12px;padding:14px 16px;background:#fff}
+  .tile.hot{background:var(--accent-dark);border-color:var(--accent-dark);color:#fff}
+  .tile .k{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#5a7a68;font-weight:600}
+  .tile.hot .k{color:#d4f5e2}
+  .tile .v{font-family:'Bebas Neue',sans-serif;font-size:34px;line-height:1;margin-top:4px}
+  .tile .sub{font-size:11px;color:#5a7a68;margin-top:4px}
+  .tile.hot .sub{color:#d4f5e2}
+  .horas{margin-top:8px}
+  .hrow{display:grid;grid-template-columns:52px 1fr auto;align-items:center;gap:8px;padding:3px 0}
+  .hlab{font-size:12px;color:#5a7a68;font-family:'DM Sans',sans-serif}
+  .hbar{height:16px;border-radius:4px;display:flex;overflow:hidden;background:#f0f4f2}
+  .hbar .b-ing{background:var(--accent)} .hbar .b-egr{background:var(--amber)}
+  .hcount{font-size:12px;color:var(--text);white-space:nowrap}
+  .legend{display:flex;gap:16px;justify-content:flex-end;font-size:12px;color:#5a7a68;margin-bottom:6px}
+  .legend .dot{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:middle}
   @media print{ header,.filtros,.btns,.noprint{display:none!important} .scroll{max-height:none;border:0} body{background:#fff} }
 </style>
 </head>
@@ -48,7 +64,7 @@
   <div class="card" id="cardLogin">
     <h2>Acceso</h2>
     <label>Usuario</label>
-    <input id="usuario" placeholder="Usuario (dejalo vacío si usás la clave maestra)" autocomplete="username">
+    <input id="usuario" placeholder="Usuario (vacío si usás la clave maestra)" autocomplete="username">
     <label>Contraseña</label>
     <input id="clave" type="password" placeholder="Contraseña" autocomplete="current-password">
     <button class="btn" style="margin-top:12px" onclick="entrar()">Entrar</button>
@@ -78,8 +94,15 @@
     <div id="msgF" class="msg"></div>
   </div>
 
+  <div class="card" id="cardResumen" style="display:none">
+    <h2>Resumen</h2>
+    <div class="tiles" id="tiles"></div>
+    <h2 style="margin-top:20px;font-size:16px">Actividad por hora</h2>
+    <div class="legend"><span><span class="dot" style="background:var(--accent)"></span>Ingresos</span><span><span class="dot" style="background:var(--amber)"></span>Egresos</span></div>
+    <div class="horas" id="horas"></div>
+  </div>
+
   <div class="card" id="cardTabla" style="display:none">
-    <div class="total" id="total"></div>
     <div class="scroll">
       <table id="tabla"><thead><tr>
         <th>Fecha</th><th>Hora</th><th>Mov.</th><th>Tipo</th><th>Nombre</th>
@@ -98,6 +121,7 @@ var DATA=[];
 function msg(id,t,c){ var m=document.getElementById(id); m.textContent=t; m.className='msg '+c; }
 function val(id){ return document.getElementById(id).value.trim(); }
 function hoy(){ var d=new Date(); return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate()); }
+function primeroMes(){ var d=new Date(); return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-01'; }
 function p2(n){ return String(n).padStart(2,'0'); }
 function e(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
 
@@ -106,7 +130,6 @@ async function entrar(){
   if(!clave) return msg('msgLogin','Ingresá la contraseña','err');
   try{
     if(!usuario){
-      // clave maestra (empresa)
       var r=await fetch(GAS_URL+'?action=consultar&token='+encodeURIComponent(clave)+'&desde='+hoy()+'&hasta='+hoy(),{redirect:'follow'});
       var d=await r.json();
       if(!d.ok) return msg('msgLogin','Clave incorrecta','err');
@@ -125,10 +148,8 @@ async function entrar(){
 
 function iniciarPortal(){
   document.getElementById('cardLogin').style.display='none';
-  document.getElementById('cardFiltros').style.display='block';
-  document.getElementById('cardTabla').style.display='block';
-  document.getElementById('desde').value=hoy(); document.getElementById('hasta').value=hoy();
-  // limitar objetivos si el usuario tiene restricción
+  ['cardFiltros','cardResumen','cardTabla'].forEach(id=>document.getElementById(id).style.display='block');
+  document.getElementById('desde').value=primeroMes(); document.getElementById('hasta').value=hoy();
   var dl=document.getElementById('listaObjetivos');
   if(AUTH.objetivos!=='*'){ dl.innerHTML=AUTH.objetivos.map(o=>'<option value="'+e(o)+'">').join(''); }
   consultar();
@@ -146,13 +167,54 @@ async function consultar(){
       return msg('msgF','Error: '+(d.error||''),'err');
     }
     document.getElementById('msgF').className='msg';
-    pintar(d.rows||[]);
+    DATA=d.rows||[];
+    metricas(DATA);
+    pintar(DATA);
   }catch(err){ msg('msgF','Sin conexión','err'); }
 }
 
+function metricas(rows){
+  var ing=0,egr=0,veh=0,prov=0,vis=0, horas={};
+  rows.forEach(function(x){
+    var t=String(x.tipo).toUpperCase();
+    if(t==='INGRESO') ing++; else if(t==='EGRESO') egr++;
+    if(String(x.vehiculo).toUpperCase()==='SI') veh++;
+    var c=String(x.categoria).toUpperCase();
+    if(c==='PROVEEDOR') prov++; else if(c==='VISITA') vis++;
+    var h=parseInt(String(x.hora).split(':')[0],10);
+    if(!isNaN(h)){ horas[h]=horas[h]||{ing:0,egr:0}; if(t==='INGRESO') horas[h].ing++; else horas[h].egr++; }
+  });
+  var total=rows.length;
+  // pico horario
+  var pico=null, picoN=-1;
+  Object.keys(horas).forEach(function(h){ var n=horas[h].ing+horas[h].egr; if(n>picoN){ picoN=n; pico=h; } });
+
+  var tiles=[
+    {k:'Total registros', v:total, hot:true},
+    {k:'Ingresos', v:ing},
+    {k:'Egresos', v:egr},
+    {k:'Con vehículo', v:veh, sub:(total? Math.round(veh*100/total):0)+'% del total'},
+    {k:'Proveedores', v:prov},
+    {k:'Visitas', v:vis},
+    {k:'Pico horario', v:(pico!=null? p2(pico)+':00':'—'), sub:(picoN>0? picoN+' registros':'')}
+  ];
+  document.getElementById('tiles').innerHTML=tiles.map(function(t){
+    return '<div class="tile'+(t.hot?' hot':'')+'"><div class="k">'+t.k+'</div><div class="v">'+t.v+'</div>'+(t.sub?'<div class="sub">'+t.sub+'</div>':'')+'</div>';
+  }).join('');
+
+  // barras por hora (solo horas con datos)
+  var maxN=1; Object.keys(horas).forEach(function(h){ maxN=Math.max(maxN, horas[h].ing+horas[h].egr); });
+  var hs=Object.keys(horas).map(Number).sort(function(a,b){return a-b;});
+  document.getElementById('horas').innerHTML = hs.length ? hs.map(function(h){
+    var o=horas[h], tot=o.ing+o.egr, w=Math.round(tot*100/maxN);
+    var wIng=tot? Math.round(o.ing*100/tot):0, wEgr=100-wIng;
+    return '<div class="hrow"><div class="hlab">'+p2(h)+':00</div>'+
+      '<div class="hbar" style="width:'+w+'%"><div class="b-ing" style="width:'+wIng+'%"></div><div class="b-egr" style="width:'+wEgr+'%"></div></div>'+
+      '<div class="hcount">'+tot+' <span class="small">('+o.ing+'/'+o.egr+')</span></div></div>';
+  }).join('') : '<div class="small">Sin datos en el rango elegido.</div>';
+}
+
 function pintar(rows){
-  DATA=rows;
-  document.getElementById('total').textContent='Total: '+rows.length+' registros';
   var tb=document.querySelector('#tabla tbody'); tb.innerHTML='';
   rows.forEach(function(x){
     var tag=(String(x.tipo).toUpperCase()==='INGRESO')?'ing':'egr', tr=document.createElement('tr');
